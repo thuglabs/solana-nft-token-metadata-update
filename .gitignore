@@ -2,6 +2,7 @@
 /build/
 /dist/
 /docs/
+/lib/
 .idea/*
 **/.cache
 
