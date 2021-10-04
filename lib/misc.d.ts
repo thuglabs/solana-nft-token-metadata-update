@@ -1,0 +1,21 @@
+/// <reference types="node" />
+import Arweave from 'arweave';
+import type { CacheItems } from './types';
+import Transaction from 'arweave/node/lib/transaction';
+import { JWKInterface } from 'arweave/node/lib/wallet';
+export declare const ARWEAVE_URI = "arweave.net";
+export declare const ARWEAVE_PROTOCOL = "https";
+export declare const CACHE_PATH = "./.cache";
+export declare const EXTENSION_PNG = ".png";
+export declare const EXTENSION_JPEG = ".jpeg";
+export declare const EXTENSION_JPG = ".jpg";
+export declare const EXTENSION_WEBP = ".webp";
+export declare const EXTENSION_GIF = ".gif";
+export declare const EXTENSION_IMAGE: string[];
+export declare const EXTENSION_JSON = ".json";
+export declare const sleep: (ms: number) => Promise<unknown>;
+export declare function cachePath(env?: string, cacheName?: string): string;
+export declare function loadCache(cacheName: string, env: string): CacheItems;
+export declare function saveCache(cacheName: string, env: string, cacheContent: CacheItems): void;
+export declare const getImageType: (filename: string) => string;
+export declare const doUpload: (arweave: Arweave, data: Buffer | string, fileType: string, jwk: JWKInterface, isUploadByChunk?: boolean) => Promise<Transaction>;

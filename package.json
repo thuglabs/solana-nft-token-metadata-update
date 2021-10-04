@@ -1,0 +1,37 @@
+{
+  "name": "test",
+  "version": "1.0.0",
+  "description": "",
+  "main": "./lib/index.js",
+  "bin": {
+    "nft-uploader": "./lib/index.js"
+  },
+  "scripts": {
+    "ts-node": "ts-node",
+    "lint": "eslint 'src/**/*.{js,ts}' --fix",
+    "build": "tsc -p .",
+    "watch": "tsc -w -p ."
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@solana/web3.js": "^1.29.2",
+    "arweave": "^1.10.16",
+    "borsh": "^0.6.0",
+    "bs58": "^4.0.1",
+    "commander": "^8.2.0",
+    "tslib": "^2.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^16.10.2",
+    "@typescript-eslint/eslint-plugin": "^4.31.0",
+    "@typescript-eslint/parser": "^4.31.0",
+    "eslint": "^7.32.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-prettier": "^4.0.0",
+    "nodemon": "^2.0.12",
+    "prettier": "^2.4.0",
+    "ts-node": "^10.2.1",
+    "typescript": "^4.4.3"
+  }
+}
