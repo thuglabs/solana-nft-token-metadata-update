@@ -4,7 +4,7 @@
   "description": "",
   "main": "./lib/index.js",
   "bin": {
-    "nft-uploader": "./lib/index.js"
+    "spl-metadata": "./lib/index.js"
   },
   "scripts": {
     "ts-node": "ts-node",
