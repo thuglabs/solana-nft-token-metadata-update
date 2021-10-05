@@ -4,7 +4,10 @@ import fetch from 'node-fetch';
 import { AccountInfo } from '@solana/web3.js';
 import { Metadata } from './metaplex/classes';
 
-export const loadData = (file = '../src/data/3d-soldiers.json'): string[] => {
+const DATA_DIRECTORY = '../src/data/';
+const METADATA_FILE = 'metadata-cache.json';
+
+export const loadData = (file = `${DATA_DIRECTORY}3d-soldiers.json`): string[] => {
     const defaultJson = [];
     const thePath = path.resolve(__dirname, file);
     try {
@@ -12,6 +15,15 @@ export const loadData = (file = '../src/data/3d-soldiers.json'): string[] => {
     } catch {
         return defaultJson;
     }
+};
+
+export const saveMetaData = (metadata: string, directory = DATA_DIRECTORY, fileName = METADATA_FILE): void => {
+    const theDirectory = path.resolve(__dirname, directory);
+    if (!fs.existsSync(theDirectory)) {
+        fs.mkdirSync(theDirectory);
+    }
+    const thePath = path.resolve(__dirname, directory, fileName);
+    fs.writeFileSync(thePath, metadata);
 };
 
 export function chunks<T>(array: T[], size: number): T[][] {

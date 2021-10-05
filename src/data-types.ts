@@ -5,7 +5,7 @@ export interface MetadataContainerInner {
     mintMetaData?: Metadata;
     name?: string;
     uri?: string;
-    imageUri?: Promise<string>;
+    imageUri?: Promise<string> | string;
 }
 
 export interface MetadataContainer {

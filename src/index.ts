@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { program } from 'commander';
 import { PublicKey, Connection } from '@solana/web3.js';
-import { loadData, getImageUrl, getMultipleAccounts } from './utils';
+import { loadData, getImageUrl, getMultipleAccounts, saveMetaData } from './utils';
 import { Metadata } from './metaplex/classes';
 import { getMetadataAddress } from './metaplex/utils';
 import { decodeMetadata } from './metaplex/metadata';
@@ -11,15 +11,18 @@ import { CANDY_MACHINE_3D } from './constants';
 program.version('0.0.1');
 
 program
-    .command('upload')
+    .command('download')
     // .argument('<directory>', 'Directory containing images named from 0-n', (val) => val)
     // .option('-e, --env <string>', 'Solana cluster env name. One of: mainnet-beta, testnet, devnet', 'devnet')
     // .option('-k, --key <path>', `Arweave wallet location`, '--Arweave wallet not provided')
     // .option('-c, --cache-name <string>', 'Cache file name', 'temp')
     .action(async () => {
-        const data = [loadData()[0]];
+        const data = loadData().slice(0, 20);
+        // get all of them
+        // const data = loadData();
         const connection = new Connection('https://solana-api.projectserum.com');
 
+        console.log('Get the token metadata from the chain');
         const intermediateResult: { [key: string]: string } = {};
         for (let index = 0; index < data.length; index++) {
             const key = data[index];
@@ -30,6 +33,7 @@ program
 
         const result: MetadataContainer = {};
 
+        console.log('Decode the token metadata, this WILL take a while');
         for (let index = 0; index < rawMetas.keys.length; index++) {
             const metaKey = rawMetas.keys[index];
             const metaAccount = rawMetas.array[index];
@@ -43,6 +47,7 @@ program
             } catch {
                 // do nothing
             }
+            console.log('Decoded ', mintMetaData.data.name);
             const mintKey = intermediateResult[metaKey];
 
             // only get Soldiers
@@ -52,14 +57,13 @@ program
                     mintMetaData,
                     name: mintMetaData?.data.name,
                     uri: mintMetaData?.data.uri,
-                    imageUri: mintMetaData && getImageUrl(mintMetaData),
+                    imageUri: mintMetaData && (await getImageUrl(mintMetaData)),
                 };
             }
         }
 
-        // at this point we have the metadata loaded from the chain
-        console.log('result >>> ', result);
-        // next wee need to update using updateMetadata
+        console.log('Save the metadata loaded from the chain');
+        saveMetaData(JSON.stringify(result, null, 2));
     });
 
 program.parse(process.argv);

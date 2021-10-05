@@ -9,3 +9,4 @@
 .DS_Store
 coverage
 *.log
+*metadata-cache.json
