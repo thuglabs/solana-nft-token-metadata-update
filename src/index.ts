@@ -20,7 +20,13 @@ program
         const data = loadData().slice(0, 20);
         // get all of them
         // const data = loadData();
-        const connection = new Connection('https://solana-api.projectserum.com');
+        // const connection = new Connection('https://solana-api.projectserum.com');
+        const connection = new Connection('https://api.devnet.solana.com');
+        const metadataJson = loadData('../src/data/metadata.json');
+
+        if (!data || !metadataJson) {
+            throw new Error('You need provide both token list and updated metadata json files');
+        }
 
         console.log('Get the token metadata from the chain');
         const intermediateResult: { [key: string]: string } = {};
@@ -49,6 +55,7 @@ program
             }
             console.log('Decoded ', mintMetaData.data.name);
             const mintKey = intermediateResult[metaKey];
+            console.log('mintMetaData', mintMetaData);
 
             // only get Soldiers
             if (mintMetaData?.data.creators && mintMetaData?.data.creators[0].address === CANDY_MACHINE_3D.toBase58()) {
@@ -71,15 +78,14 @@ program
         // next wee need to update using updateMetadata
         for (const [key, value] of Object.entries(result)) {
             const index = parseInt(value.name.split('#')[1]);
+
             // get it from file with updated URIs
-            const updatedArweaveUri = {
-                // "0": "https://...",
-                // "1": "https://...",
-            };
-            const updatedUri = updatedArweaveUri[index];
+            const updatedUri = metadataJson[index];
+            // console.log('updatedUri', updatedUri);
 
             const { data, primarySaleHappened, updateAuthority } = value.mintMetaData;
             const mintKey = key;
+
             const newUpdateAuthority = undefined;
             // const metadataAccountStr = "";
 
@@ -89,7 +95,7 @@ program
                 uri: updatedUri,
             };
 
-            console.log('value', value.mintMetaData.data);
+            // console.log('value', updatedData);
 
             try {
                 await updateMetadata(

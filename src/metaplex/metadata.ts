@@ -51,8 +51,10 @@ export async function updateMetadata(
 ): Promise<TransactionInstruction[]> {
     const metadataProgramId = METAPLEX;
     const instructions: TransactionInstruction[] = [];
+    const metadataAccountKey = metadataAccountStr ? new PublicKey(metadataAccountStr) : undefined;
+
     const metadataAccount =
-        new PublicKey(metadataAccountStr) ||
+        metadataAccountKey ||
         (
             await PublicKey.findProgramAddress(
                 [
@@ -70,7 +72,9 @@ export async function updateMetadata(
         primarySaleHappened:
             primarySaleHappened === null || primarySaleHappened === undefined ? null : primarySaleHappened,
     });
+    console.log(3, value);
     const txnData = Buffer.from(serialize(METADATA_SCHEMA, value));
+    console.log(4);
     const keys = [
         {
             pubkey: metadataAccount,
@@ -83,6 +87,7 @@ export async function updateMetadata(
             isWritable: false,
         },
     ];
+    console.log(5);
     instructions.push(
         new TransactionInstruction({
             keys,
@@ -90,6 +95,8 @@ export async function updateMetadata(
             data: txnData,
         }),
     );
+
+    console.log(6);
 
     return instructions;
 }
