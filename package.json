@@ -7,7 +7,8 @@
     "spl-metadata": "./lib/index.js"
   },
   "scripts": {
-    "start": "ts-node --log-error  ./src/index.ts upload",
+    "download-metadata": "ts-node --log-error ./src/index.ts download-metadata",
+    "update": "ts-node --log-error ./src/index.ts update",
     "ts-node": "ts-node",
     "lint": "eslint 'src/**/*.{js,ts}' --fix",
     "build": "tsc -p .",

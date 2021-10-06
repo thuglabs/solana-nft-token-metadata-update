@@ -7,7 +7,46 @@ import { Metadata } from './metaplex/classes';
 const DATA_DIRECTORY = '../src/data/';
 const METADATA_FILE = 'metadata-cache.json';
 
-export const loadData = (file = `${DATA_DIRECTORY}3d-soldiers.json`): string[] => {
+type Creator = {
+    address: string;
+    verified: number;
+    share: number;
+};
+
+export type TokenMeta = {
+    metaKey: string;
+    mintMetaData: {
+        key: number;
+        updateAuthority: string;
+        mint: string;
+        data: {
+            name: string;
+            symbol: string;
+            uri: string;
+            sellerFeeBasisPoints: number;
+            creators: Creator[];
+        };
+        primarySaleHappened: number;
+        isMutable: number;
+    };
+    name: string;
+    uri: string;
+    imageUri: string;
+};
+
+type MetadataCacheContent = {
+    [key: string]: TokenMeta;
+};
+
+export type ArweaveLink = {
+    index: string;
+    uri: string;
+    imageUri: string;
+};
+
+type JsonFileContent = string[] | MetadataCacheContent | ArweaveLink[];
+
+export const loadData = (file = `${DATA_DIRECTORY}3d-soldiers.json`): JsonFileContent => {
     const defaultJson = [];
     const thePath = path.resolve(__dirname, file);
     try {
