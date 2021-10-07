@@ -174,6 +174,10 @@ program
                 );
 
                 console.log('tx', tx);
+
+                // const txid = await sendTransactionWithRetry(connection, wallet, updateInstructions, updateSigners);
+
+                // await connection.confirmTransaction(txid, 'max');
             } catch (error) {
                 console.warn(`Items: ${el.index} failed to update with error:`, error.message);
             }
