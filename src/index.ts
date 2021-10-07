@@ -2,7 +2,7 @@
 import { program } from 'commander';
 import { PublicKey, Connection } from '@solana/web3.js';
 import { loadData, getImageUrl, getMultipleAccounts, saveMetaData, ArweaveLink } from './utils';
-import { Metadata } from './metaplex/classes';
+import { Metadata, Data, Creator } from './metaplex/classes';
 import { getMetadataAddress } from './metaplex/utils';
 import { decodeMetadata, updateMetadata } from './metaplex/metadata';
 import { MetadataContainer } from './data-types';
@@ -142,17 +142,26 @@ program
 
         // next wee need to update using updateMetadata
         for (const el of metadataUpdated) {
-            // console.log('el.metadata.metadata', el);
             const updatedUri = el.metadata.uri;
             const { data, primarySaleHappened, updateAuthority } = el.metadata.mintMetaData;
             const mintKey = el.metadata.metaKey;
             const newUpdateAuthority = undefined;
             // const metadataAccountStr = "";
-            const updatedData = {
-                ...data,
+
+            const creators = data.creators.map(
+                (el) =>
+                    new Creator({
+                        ...el,
+                    }),
+            );
+
+            const updatedData = new Data({
+                name: data.name,
                 symbol: 'SLDR3D',
                 uri: updatedUri,
-            };
+                creators,
+                sellerFeeBasisPoints: data.sellerFeeBasisPoints,
+            });
             // console.log('value', updatedData);
             try {
                 const tx = await updateMetadata(

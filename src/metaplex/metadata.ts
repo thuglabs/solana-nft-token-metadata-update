@@ -67,29 +67,15 @@ export async function updateMetadata(
         )[0];
 
     const value = new UpdateMetadataArgs({
-        data: null,
+        data,
         updateAuthority: !newUpdateAuthority ? undefined : newUpdateAuthority,
         primarySaleHappened:
             primarySaleHappened === null || primarySaleHappened === undefined ? null : primarySaleHappened,
     });
-    // const schema = new Map([
-    //     [
-    //         UpdateMetadataArgs,
-    //         {
-    //             kind: 'struct',
-    //             fields: [
-    //                 ['instruction', 'u8'],
-    //                 ['data', { kind: 'option', type: Data }],
-    //                 ['updateAuthority', { kind: 'option', type: 'pubkeyAsString' }],
-    //                 ['primarySaleHappened', { kind: 'option', type: 'u8' }],
-    //             ],
-    //         },
-    //     ],
-    // ]);
-    console.log(3, value);
+
+    console.log('value for serialize: ', value);
     const txnData = Buffer.from(serialize(METADATA_SCHEMA, value));
     // const txnData = Buffer.from(serialize(schema, value));
-    console.log(4);
     const keys = [
         {
             pubkey: metadataAccount,
@@ -102,7 +88,7 @@ export async function updateMetadata(
             isWritable: false,
         },
     ];
-    console.log(5);
+
     instructions.push(
         new TransactionInstruction({
             keys,
@@ -110,8 +96,6 @@ export async function updateMetadata(
             data: txnData,
         }),
     );
-
-    console.log(6);
 
     return instructions;
 }
