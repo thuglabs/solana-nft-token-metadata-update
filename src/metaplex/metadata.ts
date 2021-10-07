@@ -67,13 +67,28 @@ export async function updateMetadata(
         )[0];
 
     const value = new UpdateMetadataArgs({
-        data,
+        data: null,
         updateAuthority: !newUpdateAuthority ? undefined : newUpdateAuthority,
         primarySaleHappened:
             primarySaleHappened === null || primarySaleHappened === undefined ? null : primarySaleHappened,
     });
+    // const schema = new Map([
+    //     [
+    //         UpdateMetadataArgs,
+    //         {
+    //             kind: 'struct',
+    //             fields: [
+    //                 ['instruction', 'u8'],
+    //                 ['data', { kind: 'option', type: Data }],
+    //                 ['updateAuthority', { kind: 'option', type: 'pubkeyAsString' }],
+    //                 ['primarySaleHappened', { kind: 'option', type: 'u8' }],
+    //             ],
+    //         },
+    //     ],
+    // ]);
     console.log(3, value);
     const txnData = Buffer.from(serialize(METADATA_SCHEMA, value));
+    // const txnData = Buffer.from(serialize(schema, value));
     console.log(4);
     const keys = [
         {
