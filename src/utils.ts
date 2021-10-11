@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import fetch from 'node-fetch';
-import { AccountInfo } from '@solana/web3.js';
+import { AccountInfo, Keypair } from '@solana/web3.js';
 import { Metadata } from './metaplex/classes';
 
 const DATA_DIRECTORY = '../src/data/';
@@ -122,3 +122,15 @@ export const getImageUrl = async (meta: Metadata): Promise<string> => {
         });
     });
 };
+
+/**
+ * Load wallet from local file
+ */
+export function loadWalletKey(keypair): Keypair {
+    if (!keypair || keypair == '') {
+        throw new Error('Keypair is required!');
+    }
+    const loaded = Keypair.fromSecretKey(new Uint8Array(JSON.parse(fs.readFileSync(keypair).toString())));
+    console.log(`wallet public key: ${loaded.publicKey}`);
+    return loaded;
+}

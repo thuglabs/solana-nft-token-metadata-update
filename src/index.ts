@@ -1,33 +1,40 @@
 #!/usr/bin/env node
 import { program } from 'commander';
-import { PublicKey, Connection } from '@solana/web3.js';
-import { loadData, getImageUrl, getMultipleAccounts, saveMetaData, ArweaveLink } from './utils';
+import { PublicKey, Connection, clusterApiUrl, Cluster, sendAndConfirmTransaction, Transaction } from '@solana/web3.js';
+import { loadData, getImageUrl, getMultipleAccounts, saveMetaData, ArweaveLink, loadWalletKey } from './utils';
 import { Metadata, Data, Creator } from './metaplex/classes';
 import { getMetadataAddress } from './metaplex/utils';
-import { decodeMetadata, updateMetadata } from './metaplex/metadata';
+import { decodeMetadata, updateMetadataInstruction } from './metaplex/metadata';
 import { MetadataContainer } from './data-types';
 import { CANDY_MACHINE_3D } from './constants';
 
-// const RPC_CLUSTER = 'https://solana-api.projectserum.com';
-const RPC_CLUSTER = 'https://api.devnet.solana.com';
+const RPC_CLUSTER_SERUM = 'https://solana-api.projectserum.com';
+// const RPC_CLUSTER = 'https://api.devnet.solana.com';
+const getConnection = (env: string) => {
+    const cluster = env === 'mainnet-beta' ? RPC_CLUSTER_SERUM : clusterApiUrl(env as Cluster);
+    const connection = new Connection(cluster);
+    return connection;
+};
 
 program.version('0.0.1');
 
 program
     .command('download-metadata')
+    .option('-e, --env <string>', 'Solana cluster env name. One of: mainnet-beta, testnet, devnet', 'devnet')
     // .argument('<directory>', 'Directory containing images named from 0-n', (val) => val)
-    // .option('-e, --env <string>', 'Solana cluster env name. One of: mainnet-beta, testnet, devnet', 'devnet')
     // .option('-k, --key <path>', `Arweave wallet location`, '--Arweave wallet not provided')
     // .option('-c, --cache-name <string>', 'Cache file name', 'temp')
-    .action(async () => {
-        const data = loadData().slice(0, 20);
+    .action(async (_directory, cmd) => {
+        const { env } = cmd.opts();
+        const data = loadData();
         if (!data) {
             throw new Error('You need provide both token list and updated metadata json files');
         }
 
-        const connection = new Connection(RPC_CLUSTER);
+        const connection = getConnection(env);
 
-        console.log('Get the token metadata from the chain');
+        console.log(`Reading metadata for: ${data.length} items`);
+        console.log('Get the token metadata from the chain...');
         const intermediateResult: { [key: string]: string } = {};
         for (let index = 0; index < data.length; index++) {
             const key = data[index];
@@ -52,7 +59,7 @@ program
             } catch {
                 // do nothing
             }
-            console.log('Decoded ', mintMetaData.data.name);
+            console.log(`Decoded #${index}: ${mintMetaData.data.name}`);
             const mintKey = intermediateResult[metaKey];
             // console.log('mintMetaData', mintMetaData);
 
@@ -85,15 +92,18 @@ const defaultCacheFilePath = 'data/metadata-cache.json';
 const defaultArweaveLinksPath = 'data/arweave-links.json';
 program
     .command('update')
+    .option('-e, --env <string>', 'Solana cluster env name. One of: mainnet-beta, testnet, devnet', 'devnet')
     // .argument('<directory>', 'Directory containing images named from 0-n', (val) => val)
-    // .option('-e, --env <string>', 'Solana cluster env name. One of: mainnet-beta, testnet, devnet', 'devnet')
     // .option('-k, --key <path>', `Arweave wallet location`, '--Arweave wallet not provided')
     .option('-c, --cache-name <string>', 'Cache file name', `./${defaultCacheFilePath}`)
     .option('-ar, --arweave-links-name <string>', 'Updated arweaeve links file name', `./${defaultArweaveLinksPath}`)
+    .option('-k, --keypair <path>', 'Solana wallet location', '--keypair not provided')
     .action(async (_directory, cmd) => {
-        const { cacheName, arweaveLinksName } = cmd.opts();
+        const { cacheName, arweaveLinksName, env, keypair } = cmd.opts();
 
         const metadataPath = cacheName ?? `../${defaultCacheFilePath}`;
+        const walletKeyPair = loadWalletKey(keypair);
+        console.log(`Running on '${env}' network`);
 
         const metadataCurrent: TokenDetailsCurrent[] = Object.entries(loadData(metadataPath)).map(
             ([mint, metadata]: [string, any]) => {
@@ -136,16 +146,16 @@ program
             };
         });
 
-        const connection = new Connection(RPC_CLUSTER);
+        const connection = getConnection(env);
 
         console.log('result >>> ', metadataUpdated);
 
-        // next wee need to update using updateMetadata
+        // next wee need to update using updateMetadataInstruction
         for (const el of metadataUpdated) {
             const updatedUri = el.metadata.uri;
             const { data, primarySaleHappened, updateAuthority } = el.metadata.mintMetaData;
             const mintKey = el.metadata.metaKey;
-            const newUpdateAuthority = undefined;
+            const newUpdateAuthority = updateAuthority;
             // const metadataAccountStr = "";
 
             const creators = data.creators.map(
@@ -164,7 +174,7 @@ program
             });
             // console.log('value', updatedData);
             try {
-                const tx = await updateMetadata(
+                const instruction = await updateMetadataInstruction(
                     updatedData,
                     newUpdateAuthority,
                     primarySaleHappened,
@@ -173,11 +183,10 @@ program
                     // metadataAccountStr,
                 );
 
-                console.log('tx', tx);
+                console.log('instruction', instruction);
+                const tx = new Transaction().add(instruction);
 
-                // const txid = await sendTransactionWithRetry(connection, wallet, updateInstructions, updateSigners);
-
-                // await connection.confirmTransaction(txid, 'max');
+                await sendAndConfirmTransaction(connection, tx, [walletKeyPair]);
             } catch (error) {
                 console.warn(`Items: ${el.index} failed to update with error:`, error.message);
             }

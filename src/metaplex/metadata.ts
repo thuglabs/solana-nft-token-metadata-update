@@ -41,16 +41,15 @@ export const decodeMetadata = (buffer: Buffer): Metadata => {
     return metadata;
 };
 
-export async function updateMetadata(
+export async function updateMetadataInstruction(
     data: Data | undefined,
     newUpdateAuthority: string | undefined,
     primarySaleHappened: boolean | null | undefined,
     mintKey: StringPublicKey,
     updateAuthority: StringPublicKey,
     metadataAccountStr?: StringPublicKey,
-): Promise<TransactionInstruction[]> {
+): Promise<TransactionInstruction> {
     const metadataProgramId = METAPLEX;
-    const instructions: TransactionInstruction[] = [];
     const metadataAccountKey = metadataAccountStr ? new PublicKey(metadataAccountStr) : undefined;
 
     const metadataAccount =
@@ -89,13 +88,11 @@ export async function updateMetadata(
         },
     ];
 
-    instructions.push(
-        new TransactionInstruction({
-            keys,
-            programId: new PublicKey(metadataProgramId),
-            data: txnData,
-        }),
-    );
+    const instruction = new TransactionInstruction({
+        keys,
+        programId: new PublicKey(metadataProgramId),
+        data: txnData,
+    });
 
-    return instructions;
+    return instruction;
 }
