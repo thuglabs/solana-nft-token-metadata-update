@@ -38,13 +38,20 @@ type MetadataCacheContent = {
     [key: string]: TokenMeta;
 };
 
-export type ArweaveLink = {
-    index: string;
-    uri: string;
-    imageUri: string;
+export type ArweaveLinks = {
+    [index: string]: {
+        link: string;
+        name: string;
+        imageUri?: string;
+    };
 };
 
-type JsonFileContent = string[] | MetadataCacheContent | ArweaveLink[];
+export type MetaplexCacheJson = {
+    program: unknown;
+    items: ArweaveLinks;
+}
+
+type JsonFileContent = string[] | MetadataCacheContent | MetaplexCacheJson;
 
 export const loadData = (file = `${DATA_DIRECTORY}3d-soldiers.json`): JsonFileContent => {
     const defaultJson = [];

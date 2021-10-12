@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { program } from 'commander';
 import { PublicKey, Connection, clusterApiUrl, Cluster, sendAndConfirmTransaction, Transaction } from '@solana/web3.js';
-import { loadData, getImageUrl, getMultipleAccounts, saveMetaData, ArweaveLink, loadWalletKey } from './utils';
+import { loadData, getImageUrl, getMultipleAccounts, saveMetaData, MetaplexCacheJson, loadWalletKey } from './utils';
 import { Metadata, Data, Creator } from './metaplex/classes';
 import { getMetadataAddress } from './metaplex/utils';
 import { decodeMetadata, updateMetadataInstruction } from './metaplex/metadata';
@@ -96,10 +96,10 @@ program
     // .argument('<directory>', 'Directory containing images named from 0-n', (val) => val)
     // .option('-k, --key <path>', `Arweave wallet location`, '--Arweave wallet not provided')
     .option('-c, --cache-name <string>', 'Cache file name', `./${defaultCacheFilePath}`)
-    .option('-ar, --arweave-links-name <string>', 'Updated arweaeve links file name', `./${defaultArweaveLinksPath}`)
+    .option('-ar, --arweave-links <string>', 'Updated arweaeve links file name', `./${defaultArweaveLinksPath}`)
     .option('-k, --keypair <path>', 'Solana wallet location', '--keypair not provided')
     .action(async (_directory, cmd) => {
-        const { cacheName, arweaveLinksName, env, keypair } = cmd.opts();
+        const { cacheName, arweaveLinks, env, keypair } = cmd.opts();
 
         const metadataPath = cacheName ?? `../${defaultCacheFilePath}`;
         const walletKeyPair = loadWalletKey(keypair);
@@ -118,19 +118,25 @@ program
 
         // console.log('metadataCurrent', metadataCurrent);
 
-        const arweaveLinksPath = arweaveLinksName ?? `../${defaultArweaveLinksPath}`;
-        const arweaveJson = loadData(arweaveLinksPath) as ArweaveLink[];
+        const arweaveLinksPath = arweaveLinks ?? `../${defaultArweaveLinksPath}`;
+        const arweaveJson = loadData(arweaveLinksPath) as MetaplexCacheJson;
+        const arweaveData = Object.entries(arweaveJson?.items).map(([key, value]) => {
+            return {
+                ...value,
+                index: key,
+            };
+        });
+        console.log('arweaveData', arweaveData);
 
-        if (!metadataCurrent || !arweaveJson) {
+
+        if (!metadataCurrent || !arweaveData?.length) {
             throw new Error('You need provide both token list and updated metadata json files');
         }
 
-        // console.log('arweaveJson', arweaveJson);
-
         const metadataUpdated = metadataCurrent.map((el) => {
-            const arweaveLinks = arweaveJson.find((a) => parseInt(a.index) === el.index);
-            const uri = arweaveLinks.uri;
-            const imageUri = arweaveLinks.imageUri;
+            const arweaveLinks = arweaveData.find((a) => parseInt(a.index) === el.index);
+            const uri = arweaveLinks.link;
+            // const imageUri = arweaveLinks.imageUri;
 
             return {
                 ...el,
@@ -141,7 +147,7 @@ program
                         uri,
                     },
                     uri,
-                    imageUri,
+                    // imageUri,
                 },
             };
         });

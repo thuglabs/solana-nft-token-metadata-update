@@ -1,7 +1,20 @@
-[
-    {
-        "index": 1,
-        "uri": "https://arr76cps5yidg3zs7xsh7tfo4nksxteury3eb3aujwic465xyzoq.arweave.net/BGP_CfLuEDNvMv3kf8yu41UrzJSONkDsFE2QLnu3xl0",
-        "imageUri": "https://www.arweave.net/yk_ASOJRd5-iBDMuqHTnrSo25djuVFfI82RYr-aKYjw?ext=png"
+{
+    "program": {
+        "comment": "this file have same structure that metaplex' ./cache file",
+        "uuid": "unused",
+        "config": "unused"
+    },
+    "items": {
+        "0": {
+            "link": "https://arr76cps5yidg3zs7xsh7tfo4nksxteury3eb3aujwic465xyzoq.arweave.net/BGP_CfLuEDNvMv3kf8yu41UrzJSONkDsFE2QLnu3xl0",
+            "name": "SOLDIER #0000",
+            "onChain": true
+        },
+        "1": {
+            "link": "https://arr76cps5yidg3zs7xsh7tfo4nksxteury3eb3aujwic465xyzoq.arweave.net/BGP_CfLuEDNvMv3kf8yu41UrzJSONkDsFE2QLnu3xl0",
+            "name": "SOLDIER #0001",
+            "imageUri": "https://www.arweave.net/yk_ASOJRd5-iBDMuqHTnrSo25djuVFfI82RYr-aKYjw?ext=png",
+            "onChain": true
+        }
     }
-]
+}
