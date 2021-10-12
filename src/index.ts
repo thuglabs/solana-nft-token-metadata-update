@@ -26,7 +26,7 @@ program
     // .option('-c, --cache-name <string>', 'Cache file name', 'temp')
     .action(async (_directory, cmd) => {
         const { env } = cmd.opts();
-        const data = loadData();
+        const data = loadData() as string[];
         if (!data) {
             throw new Error('You need provide both token list and updated metadata json files');
         }
@@ -128,7 +128,6 @@ program
         });
         console.log('arweaveData', arweaveData);
 
-
         if (!metadataCurrent || !arweaveData?.length) {
             throw new Error('You need provide both token list and updated metadata json files');
         }
@@ -191,6 +190,9 @@ program
 
                 console.log('instruction', instruction);
                 const tx = new Transaction().add(instruction);
+
+                tx.recentBlockhash = (await connection.getRecentBlockhash()).blockhash;
+                tx.feePayer = walletKeyPair.publicKey;
 
                 await sendAndConfirmTransaction(connection, tx, [walletKeyPair]);
             } catch (error) {

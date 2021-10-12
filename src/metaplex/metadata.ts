@@ -73,6 +73,7 @@ export async function updateMetadataInstruction(
     });
 
     console.log('value for serialize: ', value);
+
     const txnData = Buffer.from(serialize(METADATA_SCHEMA, value));
     // const txnData = Buffer.from(serialize(schema, value));
     const keys = [

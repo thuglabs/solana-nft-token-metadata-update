@@ -49,7 +49,7 @@ export type ArweaveLinks = {
 export type MetaplexCacheJson = {
     program: unknown;
     items: ArweaveLinks;
-}
+};
 
 type JsonFileContent = string[] | MetadataCacheContent | MetaplexCacheJson;
 

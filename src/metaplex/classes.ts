@@ -113,6 +113,7 @@ export class Data {
     uri: string;
     sellerFeeBasisPoints: number;
     creators: Creator[] | null;
+
     constructor(args: {
         name: string;
         symbol: string;
@@ -199,6 +200,7 @@ export class UpdateMetadataArgs {
     // Not used by this app, just required for instruction
     updateAuthority: StringPublicKey | null;
     primarySaleHappened: boolean | null;
+
     constructor(args: { data?: Data; updateAuthority?: string; primarySaleHappened: boolean | null }) {
         this.data = args.data ? args.data : null;
         this.updateAuthority = args.updateAuthority ? args.updateAuthority : null;
@@ -206,7 +208,46 @@ export class UpdateMetadataArgs {
     }
 }
 
+class CreateMetadataArgs {
+    instruction: 0;
+    data: Data;
+    isMutable: boolean;
+
+    constructor(args: { data: Data; isMutable: boolean }) {
+        this.data = args.data;
+        this.isMutable = args.isMutable;
+    }
+}
+
+class CreateMasterEditionArgs {
+    instruction: 10;
+    maxSupply: BN | null;
+    constructor(args: { maxSupply: BN | null }) {
+        this.maxSupply = args.maxSupply;
+    }
+}
+
+class MintPrintingTokensArgs {
+    instruction: 9;
+    supply: BN;
+
+    constructor(args: { supply: BN }) {
+        this.supply = args.supply;
+    }
+}
+
 export const METADATA_SCHEMA = new Map<any, any>([
+    [
+        CreateMetadataArgs,
+        {
+            kind: 'struct',
+            fields: [
+                ['instruction', 'u8'],
+                ['data', Data],
+                ['isMutable', 'u8'], // bool
+            ],
+        },
+    ],
     [
         UpdateMetadataArgs,
         {
@@ -216,6 +257,27 @@ export const METADATA_SCHEMA = new Map<any, any>([
                 ['data', { kind: 'option', type: Data }],
                 ['updateAuthority', { kind: 'option', type: 'pubkeyAsString' }],
                 ['primarySaleHappened', { kind: 'option', type: 'u8' }],
+            ],
+        },
+    ],
+
+    [
+        CreateMasterEditionArgs,
+        {
+            kind: 'struct',
+            fields: [
+                ['instruction', 'u8'],
+                ['maxSupply', { kind: 'option', type: 'u64' }],
+            ],
+        },
+    ],
+    [
+        MintPrintingTokensArgs,
+        {
+            kind: 'struct',
+            fields: [
+                ['instruction', 'u8'],
+                ['supply', 'u64'],
             ],
         },
     ],
