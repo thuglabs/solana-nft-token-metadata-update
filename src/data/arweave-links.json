@@ -1,7 +1,35 @@
-[
-    {
-        "index": 1,
-        "uri": "https://arr76cps5yidg3zs7xsh7tfo4nksxteury3eb3aujwic465xyzoq.arweave.net/BGP_CfLuEDNvMv3kf8yu41UrzJSONkDsFE2QLnu3xl0",
-        "imageUri": "https://www.arweave.net/yk_ASOJRd5-iBDMuqHTnrSo25djuVFfI82RYr-aKYjw?ext=png"
-    }
-]
+{
+    "program": {
+        "uuid": "8hUeDs",
+        "config": "8hUeDs5o4EaftGXvjomBFqwP4u9um4KyQVrjGKCnEnPF",
+        "CM_pubkey": "2uaUddqUQvbkDkqTVQi7Zn4jFMArppgXwrA2iWBJZWKZ",
+        "minted tokens": [
+            "7NdwvChwmQw5ccTZiNneDYv4dtGjS6kpSyaffCsM9TeE"
+        ]
+    },
+    "items": {
+        "0": {
+            "link": "https://55cero4kkodiis4icksefp6pgwx74vjd3qrum6hzrmbkt3ycem3a.arweave.net/70RIu4pThoRLiBKkQr_PNa_-VSPcI0Z4-YsCqe8CIzY",
+            "name": "SOLDIER #1000",
+            "onChain": true
+        },
+        "1": {
+            "link": "https://55cero4kkodiis4icksefp6pgwx74vjd3qrum6hzrmbkt3ycem3a.arweave.net/70RIu4pThoRLiBKkQr_PNa_-VSPcI0Z4-YsCqe8CIzY",
+            "name": "SOLDIER #1001",
+            "onChain": true
+        },
+        "2": {
+            "link": "https://arweave.net/QDjx14tlCsH45HfOSX_yMGL0MTvTf2HtDQmrAES_xgA",
+            "name": "SOLDIER #1002",
+            "onChain": true
+        },
+        "3": {
+            "link": "https://arweave.net/x8rmusDic-HGkdrfz6zKAZ9FJGcWPUThGrGDSR9amsY",
+            "name": "SOLDIER #0003",
+            "onChain": true
+        }
+    },
+    "env": "devnet",
+    "cacheName": "temp",
+    "authority": "7S5G4WUJX49gDTt2RjsodoDTNSDt63fdHkvx2geF1VBw"
+}

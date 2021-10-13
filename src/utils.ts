@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import fetch from 'node-fetch';
-import { AccountInfo } from '@solana/web3.js';
+import { AccountInfo, Keypair } from '@solana/web3.js';
 import { Metadata } from './metaplex/classes';
 
 const DATA_DIRECTORY = '../src/data/';
@@ -34,17 +34,24 @@ export type TokenMeta = {
     imageUri: string;
 };
 
-type MetadataCacheContent = {
+export type MetadataCacheContent = {
     [key: string]: TokenMeta;
 };
 
-export type ArweaveLink = {
-    index: string;
-    uri: string;
-    imageUri: string;
+export type ArweaveLinks = {
+    [index: string]: {
+        link: string;
+        name: string;
+        imageUri?: string;
+    };
 };
 
-type JsonFileContent = string[] | MetadataCacheContent | ArweaveLink[];
+export type MetaplexCacheJson = {
+    program: unknown;
+    items: ArweaveLinks;
+};
+
+type JsonFileContent = string[] | MetadataCacheContent | MetaplexCacheJson;
 
 export const loadData = (file = `${DATA_DIRECTORY}3d-soldiers.json`): JsonFileContent => {
     const defaultJson = [];
@@ -122,3 +129,15 @@ export const getImageUrl = async (meta: Metadata): Promise<string> => {
         });
     });
 };
+
+/**
+ * Load wallet from local file
+ */
+export function loadWalletKey(keypair): Keypair {
+    if (!keypair || keypair == '') {
+        throw new Error('Keypair is required!');
+    }
+    const loaded = Keypair.fromSecretKey(new Uint8Array(JSON.parse(fs.readFileSync(keypair).toString())));
+    console.log(`wallet public key: ${loaded.publicKey}`);
+    return loaded;
+}

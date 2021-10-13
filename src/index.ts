@@ -1,33 +1,48 @@
 #!/usr/bin/env node
 import { program } from 'commander';
-import { PublicKey, Connection } from '@solana/web3.js';
-import { loadData, getImageUrl, getMultipleAccounts, saveMetaData, ArweaveLink } from './utils';
+import { PublicKey, Connection, clusterApiUrl, Cluster, sendAndConfirmTransaction, Transaction } from '@solana/web3.js';
+import {
+    loadData,
+    getImageUrl,
+    getMultipleAccounts,
+    saveMetaData,
+    MetaplexCacheJson,
+    loadWalletKey,
+    MetadataCacheContent,
+} from './utils';
 import { Metadata, Data, Creator } from './metaplex/classes';
 import { getMetadataAddress } from './metaplex/utils';
-import { decodeMetadata, updateMetadata } from './metaplex/metadata';
+import { decodeMetadata, updateMetadataInstruction } from './metaplex/metadata';
 import { MetadataContainer } from './data-types';
-import { CANDY_MACHINE_3D } from './constants';
+import { CANDY_MACHINE_ID } from './constants';
 
-// const RPC_CLUSTER = 'https://solana-api.projectserum.com';
-const RPC_CLUSTER = 'https://api.devnet.solana.com';
+const RPC_CLUSTER_SERUM = 'https://solana-api.projectserum.com';
+// const RPC_CLUSTER = 'https://api.devnet.solana.com';
+const getConnection = (env: string) => {
+    const cluster = env === 'mainnet-beta' ? RPC_CLUSTER_SERUM : clusterApiUrl(env as Cluster);
+    const connection = new Connection(cluster);
+    return connection;
+};
 
 program.version('0.0.1');
 
 program
     .command('download-metadata')
+    .option('-e, --env <string>', 'Solana cluster env name. One of: mainnet-beta, testnet, devnet', 'devnet')
     // .argument('<directory>', 'Directory containing images named from 0-n', (val) => val)
-    // .option('-e, --env <string>', 'Solana cluster env name. One of: mainnet-beta, testnet, devnet', 'devnet')
     // .option('-k, --key <path>', `Arweave wallet location`, '--Arweave wallet not provided')
     // .option('-c, --cache-name <string>', 'Cache file name', 'temp')
-    .action(async () => {
-        const data = loadData().slice(0, 20);
+    .action(async (_directory, cmd) => {
+        const { env } = cmd.opts();
+        const data = loadData() as string[];
         if (!data) {
             throw new Error('You need provide both token list and updated metadata json files');
         }
 
-        const connection = new Connection(RPC_CLUSTER);
+        const connection = getConnection(env);
 
-        console.log('Get the token metadata from the chain');
+        console.log(`Reading metadata for: ${data.length} items`);
+        console.log('Get the token metadata from the chain...');
         const intermediateResult: { [key: string]: string } = {};
         for (let index = 0; index < data.length; index++) {
             const key = data[index];
@@ -52,12 +67,12 @@ program
             } catch {
                 // do nothing
             }
-            console.log('Decoded ', mintMetaData.data.name);
+            console.log(`Decoded #${index}: ${mintMetaData.data.name}`);
             const mintKey = intermediateResult[metaKey];
-            // console.log('mintMetaData', mintMetaData);
+            console.log('mintMetaData', mintMetaData);
 
             // only get Soldiers
-            if (mintMetaData?.data.creators && mintMetaData?.data.creators[0].address === CANDY_MACHINE_3D.toBase58()) {
+            if (mintMetaData?.data.creators && mintMetaData?.data.creators[0].address === CANDY_MACHINE_ID.toBase58()) {
                 result[mintKey] = {
                     metaKey,
                     mintMetaData,
@@ -85,17 +100,21 @@ const defaultCacheFilePath = 'data/metadata-cache.json';
 const defaultArweaveLinksPath = 'data/arweave-links.json';
 program
     .command('update')
+    .option('-e, --env <string>', 'Solana cluster env name. One of: mainnet-beta, testnet, devnet', 'devnet')
     // .argument('<directory>', 'Directory containing images named from 0-n', (val) => val)
-    // .option('-e, --env <string>', 'Solana cluster env name. One of: mainnet-beta, testnet, devnet', 'devnet')
     // .option('-k, --key <path>', `Arweave wallet location`, '--Arweave wallet not provided')
     .option('-c, --cache-name <string>', 'Cache file name', `./${defaultCacheFilePath}`)
-    .option('-ar, --arweave-links-name <string>', 'Updated arweaeve links file name', `./${defaultArweaveLinksPath}`)
+    .option('-ar, --arweave-links <string>', 'Updated arweaeve links file name', `./${defaultArweaveLinksPath}`)
+    .option('-k, --keypair <path>', 'Solana wallet location', '--keypair not provided')
     .action(async (_directory, cmd) => {
-        const { cacheName, arweaveLinksName } = cmd.opts();
+        const { cacheName, arweaveLinks, env, keypair } = cmd.opts();
 
         const metadataPath = cacheName ?? `../${defaultCacheFilePath}`;
+        const walletKeyPair = loadWalletKey(keypair);
+        console.log(`Running on '${env}' network`);
 
-        const metadataCurrent: TokenDetailsCurrent[] = Object.entries(loadData(metadataPath)).map(
+        const metadataCacheJson = loadData(metadataPath) as MetadataCacheContent;
+        const metadataCurrent: TokenDetailsCurrent[] = Object.entries(metadataCacheJson).map(
             ([mint, metadata]: [string, any]) => {
                 const index = parseInt(metadata.mintMetaData.data.name.split('#')[1]);
                 return {
@@ -106,21 +125,26 @@ program
             },
         );
 
-        // console.log('metadataCurrent', metadataCurrent);
+        const arweaveLinksPath = arweaveLinks ?? `../${defaultArweaveLinksPath}`;
+        const arweaveJson = loadData(arweaveLinksPath) as MetaplexCacheJson;
+        const arweaveData = Object.entries(arweaveJson?.items).map(([key, value]) => {
+            return {
+                ...value,
+                index: key,
+            };
+        });
+        // console.log('arweaveData', arweaveData);
 
-        const arweaveLinksPath = arweaveLinksName ?? `../${defaultArweaveLinksPath}`;
-        const arweaveJson = loadData(arweaveLinksPath) as ArweaveLink[];
-
-        if (!metadataCurrent || !arweaveJson) {
+        if (!metadataCurrent || !arweaveData?.length) {
             throw new Error('You need provide both token list and updated metadata json files');
         }
 
-        // console.log('arweaveJson', arweaveJson);
+        // console.log('metadataCurrent', metadataCurrent);
 
         const metadataUpdated = metadataCurrent.map((el) => {
-            const arweaveLinks = arweaveJson.find((a) => parseInt(a.index) === el.index);
-            const uri = arweaveLinks.uri;
-            const imageUri = arweaveLinks.imageUri;
+            const arweaveLinks = arweaveData.find((a) => parseInt(a.index) === el.index);
+            const uri = arweaveLinks.link;
+            // const imageUri = arweaveLinks.imageUri;
 
             return {
                 ...el,
@@ -131,21 +155,21 @@ program
                         uri,
                     },
                     uri,
-                    imageUri,
+                    // imageUri,
                 },
             };
         });
 
-        const connection = new Connection(RPC_CLUSTER);
+        const connection = getConnection(env);
 
-        console.log('result >>> ', metadataUpdated);
+        // console.log('result >>> ', metadataUpdated);
 
-        // next wee need to update using updateMetadata
-        for (const el of metadataUpdated) {
+        // next wee need to update using updateMetadataInstruction
+        for (const [index, el] of metadataUpdated.entries()) {
             const updatedUri = el.metadata.uri;
             const { data, primarySaleHappened, updateAuthority } = el.metadata.mintMetaData;
-            const mintKey = el.metadata.metaKey;
-            const newUpdateAuthority = undefined;
+            const mintKey = el.metadata.mintMetaData.mint;
+            const newUpdateAuthority = updateAuthority;
             // const metadataAccountStr = "";
 
             const creators = data.creators.map(
@@ -163,8 +187,11 @@ program
                 sellerFeeBasisPoints: data.sellerFeeBasisPoints,
             });
             // console.log('value', updatedData);
+
+            console.log(`Updating token #${index} ${mintKey}...`);
+
             try {
-                const tx = await updateMetadata(
+                const instruction = await updateMetadataInstruction(
                     updatedData,
                     newUpdateAuthority,
                     primarySaleHappened,
@@ -173,11 +200,15 @@ program
                     // metadataAccountStr,
                 );
 
-                console.log('tx', tx);
+                // console.log('instruction', instruction);
+                const tx = new Transaction().add(instruction);
 
-                // const txid = await sendTransactionWithRetry(connection, wallet, updateInstructions, updateSigners);
+                tx.recentBlockhash = (await connection.getRecentBlockhash()).blockhash;
+                tx.feePayer = walletKeyPair.publicKey;
 
-                // await connection.confirmTransaction(txid, 'max');
+                const result = await sendAndConfirmTransaction(connection, tx, [walletKeyPair]);
+                console.log('Tx was successful! ID: ', result);
+
             } catch (error) {
                 console.warn(`Items: ${el.index} failed to update with error:`, error.message);
             }

@@ -41,27 +41,22 @@ export const decodeMetadata = (buffer: Buffer): Metadata => {
     return metadata;
 };
 
-export async function updateMetadata(
+export async function updateMetadataInstruction(
     data: Data | undefined,
     newUpdateAuthority: string | undefined,
     primarySaleHappened: boolean | null | undefined,
     mintKey: StringPublicKey,
     updateAuthority: StringPublicKey,
     metadataAccountStr?: StringPublicKey,
-): Promise<TransactionInstruction[]> {
+): Promise<TransactionInstruction> {
     const metadataProgramId = METAPLEX;
-    const instructions: TransactionInstruction[] = [];
     const metadataAccountKey = metadataAccountStr ? new PublicKey(metadataAccountStr) : undefined;
 
     const metadataAccount =
         metadataAccountKey ||
         (
             await PublicKey.findProgramAddress(
-                [
-                    Buffer.from('metadata'),
-                    new PublicKey(metadataProgramId).toBuffer(),
-                    new PublicKey(mintKey).toBuffer(),
-                ],
+                [Buffer.from('metadata'), metadataProgramId.toBuffer(), new PublicKey(mintKey).toBuffer()],
                 metadataProgramId,
             )
         )[0];
@@ -73,9 +68,11 @@ export async function updateMetadata(
             primarySaleHappened === null || primarySaleHappened === undefined ? null : primarySaleHappened,
     });
 
-    console.log('value for serialize: ', value);
+    // console.log('value for serialize: ', value);
+
     const txnData = Buffer.from(serialize(METADATA_SCHEMA, value));
     // const txnData = Buffer.from(serialize(schema, value));
+
     const keys = [
         {
             pubkey: metadataAccount,
@@ -89,13 +86,11 @@ export async function updateMetadata(
         },
     ];
 
-    instructions.push(
-        new TransactionInstruction({
-            keys,
-            programId: new PublicKey(metadataProgramId),
-            data: txnData,
-        }),
-    );
+    const instruction = new TransactionInstruction({
+        keys,
+        programId: new PublicKey(metadataProgramId),
+        data: txnData,
+    });
 
-    return instructions;
+    return instruction;
 }
