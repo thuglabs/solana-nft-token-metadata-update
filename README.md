@@ -23,9 +23,9 @@ yarn metadata-download
 ```
 It will get array of tokens from `./src/data/3d-soldiers.json` and fetch all metadata to the file `src/data/metadata-cache.json` (may take ~1hr for 1k items).
 
-SKIP this step if you already have this data. And your `metadata-cache.json` into `./src/data/`.
-
 ## Update metadata for tokens
+
+Place `metadata-cache.json` into `./src/data/`.
 
 Local keypair should be the same as keypair used to create related Candy Machine, and assumed to be an `Update Authority` for each token in the list.
 Default `env` is `devnet
