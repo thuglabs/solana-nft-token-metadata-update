@@ -34,7 +34,7 @@ export type TokenMeta = {
     imageUri: string;
 };
 
-type MetadataCacheContent = {
+export type MetadataCacheContent = {
     [key: string]: TokenMeta;
 };
 

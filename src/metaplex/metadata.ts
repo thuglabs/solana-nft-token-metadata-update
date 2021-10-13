@@ -56,11 +56,7 @@ export async function updateMetadataInstruction(
         metadataAccountKey ||
         (
             await PublicKey.findProgramAddress(
-                [
-                    Buffer.from('metadata'),
-                    new PublicKey(metadataProgramId).toBuffer(),
-                    new PublicKey(mintKey).toBuffer(),
-                ],
+                [Buffer.from('metadata'), metadataProgramId.toBuffer(), new PublicKey(mintKey).toBuffer()],
                 metadataProgramId,
             )
         )[0];
@@ -72,10 +68,11 @@ export async function updateMetadataInstruction(
             primarySaleHappened === null || primarySaleHappened === undefined ? null : primarySaleHappened,
     });
 
-    console.log('value for serialize: ', value);
+    // console.log('value for serialize: ', value);
 
     const txnData = Buffer.from(serialize(METADATA_SCHEMA, value));
     // const txnData = Buffer.from(serialize(schema, value));
+
     const keys = [
         {
             pubkey: metadataAccount,

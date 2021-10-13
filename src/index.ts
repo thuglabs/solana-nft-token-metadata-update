@@ -1,12 +1,20 @@
 #!/usr/bin/env node
 import { program } from 'commander';
 import { PublicKey, Connection, clusterApiUrl, Cluster, sendAndConfirmTransaction, Transaction } from '@solana/web3.js';
-import { loadData, getImageUrl, getMultipleAccounts, saveMetaData, MetaplexCacheJson, loadWalletKey } from './utils';
+import {
+    loadData,
+    getImageUrl,
+    getMultipleAccounts,
+    saveMetaData,
+    MetaplexCacheJson,
+    loadWalletKey,
+    MetadataCacheContent,
+} from './utils';
 import { Metadata, Data, Creator } from './metaplex/classes';
 import { getMetadataAddress } from './metaplex/utils';
 import { decodeMetadata, updateMetadataInstruction } from './metaplex/metadata';
 import { MetadataContainer } from './data-types';
-import { CANDY_MACHINE_3D } from './constants';
+import { CANDY_MACHINE_ID } from './constants';
 
 const RPC_CLUSTER_SERUM = 'https://solana-api.projectserum.com';
 // const RPC_CLUSTER = 'https://api.devnet.solana.com';
@@ -61,10 +69,10 @@ program
             }
             console.log(`Decoded #${index}: ${mintMetaData.data.name}`);
             const mintKey = intermediateResult[metaKey];
-            // console.log('mintMetaData', mintMetaData);
+            console.log('mintMetaData', mintMetaData);
 
             // only get Soldiers
-            if (mintMetaData?.data.creators && mintMetaData?.data.creators[0].address === CANDY_MACHINE_3D.toBase58()) {
+            if (mintMetaData?.data.creators && mintMetaData?.data.creators[0].address === CANDY_MACHINE_ID.toBase58()) {
                 result[mintKey] = {
                     metaKey,
                     mintMetaData,
@@ -105,7 +113,8 @@ program
         const walletKeyPair = loadWalletKey(keypair);
         console.log(`Running on '${env}' network`);
 
-        const metadataCurrent: TokenDetailsCurrent[] = Object.entries(loadData(metadataPath)).map(
+        const metadataCacheJson = loadData(metadataPath) as MetadataCacheContent;
+        const metadataCurrent: TokenDetailsCurrent[] = Object.entries(metadataCacheJson).map(
             ([mint, metadata]: [string, any]) => {
                 const index = parseInt(metadata.mintMetaData.data.name.split('#')[1]);
                 return {
@@ -116,8 +125,6 @@ program
             },
         );
 
-        // console.log('metadataCurrent', metadataCurrent);
-
         const arweaveLinksPath = arweaveLinks ?? `../${defaultArweaveLinksPath}`;
         const arweaveJson = loadData(arweaveLinksPath) as MetaplexCacheJson;
         const arweaveData = Object.entries(arweaveJson?.items).map(([key, value]) => {
@@ -126,11 +133,13 @@ program
                 index: key,
             };
         });
-        console.log('arweaveData', arweaveData);
+        // console.log('arweaveData', arweaveData);
 
         if (!metadataCurrent || !arweaveData?.length) {
             throw new Error('You need provide both token list and updated metadata json files');
         }
+
+        // console.log('metadataCurrent', metadataCurrent);
 
         const metadataUpdated = metadataCurrent.map((el) => {
             const arweaveLinks = arweaveData.find((a) => parseInt(a.index) === el.index);
@@ -153,13 +162,13 @@ program
 
         const connection = getConnection(env);
 
-        console.log('result >>> ', metadataUpdated);
+        // console.log('result >>> ', metadataUpdated);
 
         // next wee need to update using updateMetadataInstruction
-        for (const el of metadataUpdated) {
+        for (const [index, el] of metadataUpdated.entries()) {
             const updatedUri = el.metadata.uri;
             const { data, primarySaleHappened, updateAuthority } = el.metadata.mintMetaData;
-            const mintKey = el.metadata.metaKey;
+            const mintKey = el.metadata.mintMetaData.mint;
             const newUpdateAuthority = updateAuthority;
             // const metadataAccountStr = "";
 
@@ -178,6 +187,9 @@ program
                 sellerFeeBasisPoints: data.sellerFeeBasisPoints,
             });
             // console.log('value', updatedData);
+
+            console.log(`Updating token #${index} ${mintKey}...`);
+
             try {
                 const instruction = await updateMetadataInstruction(
                     updatedData,
@@ -188,13 +200,15 @@ program
                     // metadataAccountStr,
                 );
 
-                console.log('instruction', instruction);
+                // console.log('instruction', instruction);
                 const tx = new Transaction().add(instruction);
 
                 tx.recentBlockhash = (await connection.getRecentBlockhash()).blockhash;
                 tx.feePayer = walletKeyPair.publicKey;
 
-                await sendAndConfirmTransaction(connection, tx, [walletKeyPair]);
+                const result = await sendAndConfirmTransaction(connection, tx, [walletKeyPair]);
+                console.log('Tx was successful! ID: ', result);
+
             } catch (error) {
                 console.warn(`Items: ${el.index} failed to update with error:`, error.message);
             }
