@@ -1,6 +1,13 @@
 #!/usr/bin/env node
 import { program } from 'commander';
-import { PublicKey, Connection, clusterApiUrl, Cluster, sendAndConfirmTransaction, Transaction } from '@solana/web3.js';
+import {
+    PublicKey,
+    Connection,
+    clusterApiUrl,
+    Cluster,
+    //  sendAndConfirmTransaction,
+    Transaction,
+} from '@solana/web3.js';
 import {
     loadData,
     getImageUrl,
@@ -9,6 +16,7 @@ import {
     MetaplexCacheJson,
     loadWalletKey,
     MetadataCacheContent,
+    sendSignedTransaction,
 } from './utils';
 import { Metadata, Data, Creator } from './metaplex/classes';
 import { getMetadataAddress } from './metaplex/utils';
@@ -124,13 +132,14 @@ program
                 };
             },
         );
+        // console.log('metadataCurrent', metadataCurrent[0]);
 
         const arweaveLinksPath = arweaveLinks ?? `../${defaultArweaveLinksPath}`;
         const arweaveJson = loadData(arweaveLinksPath) as MetaplexCacheJson;
         const arweaveData = Object.entries(arweaveJson?.items).map(([key, value]) => {
             return {
                 ...value,
-                index: key,
+                index: parseInt(key),
             };
         });
         // console.log('arweaveData', arweaveData);
@@ -141,12 +150,21 @@ program
 
         // console.log('metadataCurrent', metadataCurrent);
 
-        const metadataUpdated = metadataCurrent.map((el) => {
-            const arweaveLinks = arweaveData.find((a) => parseInt(a.index) === el.index);
+        const metadataUpdated = metadataCurrent.reduce((acc, el) => {
+            // console.log('el', el);
+
+            const arweaveLinks = arweaveData.find((a) => a.index === el.index);
+            // console.log('arweaveLinks', arweaveLinks);
+
+            if (!arweaveLinks) {
+                console.log(`Can't find arweave link for ${el.index}. Skipping.`);
+                return acc;
+            }
+
             const uri = arweaveLinks.link;
             // const imageUri = arweaveLinks.imageUri;
 
-            return {
+            const elUpdated = {
                 ...el,
                 metadata: {
                     ...el.metadata,
@@ -155,10 +173,13 @@ program
                         uri,
                     },
                     uri,
-                    // imageUri,
                 },
             };
-        });
+
+            return [...acc, elUpdated];
+        }, []);
+
+        // console.log('metadataUpdated', metadataUpdated);
 
         const connection = getConnection(env);
 
@@ -171,6 +192,8 @@ program
             const mintKey = el.metadata.mintMetaData.mint;
             const newUpdateAuthority = updateAuthority;
             // const metadataAccountStr = "";
+
+            // console.log('el.metadata.mintMetaData', el.metadata.mintMetaData);
 
             const creators = data.creators.map(
                 (el) =>
@@ -206,9 +229,17 @@ program
                 tx.recentBlockhash = (await connection.getRecentBlockhash()).blockhash;
                 tx.feePayer = walletKeyPair.publicKey;
 
-                const result = await sendAndConfirmTransaction(connection, tx, [walletKeyPair]);
-                console.log('Tx was successful! ID: ', result);
+                tx.sign(walletKeyPair, walletKeyPair);
+                // console.log('tx', tx);
 
+                const { txid, slot } = await sendSignedTransaction({
+                    connection,
+                    signedTransaction: tx,
+                });
+
+                // return;
+                // const result = await sendAndConfirmTransaction(connection, tx, [walletKeyPair]);
+                console.log('Tx was successful! ID: ', txid, slot);
             } catch (error) {
                 console.warn(`Items: ${el.index} failed to update with error:`, error.message);
             }
