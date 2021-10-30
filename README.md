@@ -1,13 +1,13 @@
 # Script to update Solana NFT Token Metadata
 
+This script updates existing NFTs (replaces json metadata) created with Candy Machine on the blockchain with updated metadata.
+It have 2 commands: `download-meta` current metadata and `update` with new metadata.
+
+
 ## Demo
 
 
 https://user-images.githubusercontent.com/188568/139542417-c687d6e8-8d55-4761-be23-5e5efba69e70.mp4
-
-
-This script updates existing NFTs (replaces json metadata) created with Candy Machine on the blockchain with updated metadata.
-It have 2 commands: `download-meta` current metadata and `update` with new metadata.
 
 Script logs all failed tokens in case of any, so you can retry upload them separately. Also, it do update retry with some sleep time in case of fail.
 By default it suppose to update tokens in the list between 0 and 10k. you can edit specific range [at this line](https://github.com/thuglabs/token-metadata-update/blob/master/src/index.ts#L177). Also, you can set to update single token [here](https://github.com/thuglabs/token-metadata-update/blob/master/src/index.ts#L174).
