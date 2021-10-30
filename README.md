@@ -1,4 +1,4 @@
-# Script to update Solana NFT Token Metadata
+# 🌅  Script to update Solana NFT Token Metadata
 
 This script updates existing NFTs (replaces json metadata) created with Candy Machine on the blockchain with updated metadata.
 It have 2 commands: `download-meta` current metadata and `update` with new metadata.
