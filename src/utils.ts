@@ -15,7 +15,7 @@ import {
 import { Metadata } from './metaplex/classes';
 
 const DATA_DIRECTORY = '../src/data/';
-const METADATA_FILE = 'metadata-cache.json';
+const METADATA_FILE = 'current-metadata-cache.json';
 
 type Creator = {
     address: string;
@@ -63,7 +63,7 @@ export type MetaplexCacheJson = {
 
 type JsonFileContent = string[] | MetadataCacheContent | MetaplexCacheJson;
 
-export const loadData = (file = `${DATA_DIRECTORY}3d-soldiers.json`): JsonFileContent => {
+export const loadData = (file = `${DATA_DIRECTORY}token-list-to-parse.json`): JsonFileContent => {
     const defaultJson = [];
     const thePath = path.resolve(__dirname, file);
     try {
