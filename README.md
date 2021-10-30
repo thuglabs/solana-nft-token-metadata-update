@@ -6,7 +6,7 @@
 https://user-images.githubusercontent.com/188568/139542417-c687d6e8-8d55-4761-be23-5e5efba69e70.mp4
 
 
-This script updates existing NFTs created with Candy Machine on the blockchain with updated metadata.
+This script updates existing NFTs (replaces json metadata) created with Candy Machine on the blockchain with updated metadata.
 It have 2 commands: `download-meta` current metadata and `update` with new metadata.
 
 Script logs all failed tokens in case of any, so you can retry upload them separately. Also, it do update retry with some sleep time in case of fail.
