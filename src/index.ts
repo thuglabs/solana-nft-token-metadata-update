@@ -171,7 +171,7 @@ program
 
         console.log('Number of items to be updated: ', metadataUpdated.length);
 
-        // const nftItemToFix = 'BdFntZHCvMrJXdE19eHKurS6ZB1LsndHdgdFqGfayQxo';
+        // const nftItemToFix = 'TOKEN_ADDRESS_TO_UPDATE_AS_SINGLE_ITEM';
         // const metadataUpdatedFiltered = metadataUpdated.filter((el) => el.mint === nftItemToFix);
 
         const metadataUpdatedFiltered = metadataUpdated.slice(0, 10000);
