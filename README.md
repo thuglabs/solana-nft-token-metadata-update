@@ -1,11 +1,9 @@
-# 🌅  Script to update Solana NFT Token Metadata
+# 🌅 Script to update Solana NFT Token Metadata
 
-This script updates existing NFTs (replaces json metadata) created with Candy Machine on the blockchain with updated metadata.
+This script updates existing NFTs (replaces json metadata) created with Candy Machine v1 on the blockchain with updated metadata.
 It have 2 commands: `download-meta` current metadata and `update` with new metadata.
 
-
 ## Demo
-
 
 https://user-images.githubusercontent.com/188568/139542417-c687d6e8-8d55-4761-be23-5e5efba69e70.mp4
 
@@ -22,7 +20,6 @@ yarn
 
 Set your Candy Machine ID within: `src/constans.ts`.
 Place all your tokens addresses (mint id) as string array to the `./src/data/token-list-to-parse.json`.
-
 
 ## Download current meta.
 
@@ -51,4 +48,3 @@ Default `env` is `devnet
 ```
 yarn run update --keypair <PATH_TO_LOCAL_KEYPAIR> --env mainnet-beta
 ```
-

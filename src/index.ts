@@ -17,9 +17,9 @@ import { decodeMetadata, updateMetadataInstruction } from './metaplex/metadata';
 import { MetadataContainer } from './data-types';
 import { CANDY_MACHINE_ID } from './constants';
 
-const RPC_CLUSTER_SERUM = 'https://solana-api.projectserum.com';
-// const RPC_CLUSTER_DEV = 'https://api.devnet.solana.com';
-const RPC_CLUSTER = RPC_CLUSTER_SERUM;
+const RPC_CLUSTER_API = 'https://solana-api.projectserum.com';
+// const RPC_CLUSTER_API = 'https://api.devnet.solana.com';
+const RPC_CLUSTER = RPC_CLUSTER_API;
 
 const getConnection = (env: string) => {
     const cluster = env === 'mainnet-beta' ? RPC_CLUSTER : clusterApiUrl(env as Cluster);
@@ -192,7 +192,6 @@ program
             const { data, primarySaleHappened, updateAuthority } = el.metadata.mintMetaData;
             const mintKey = el.metadata.mintMetaData.mint;
             const newUpdateAuthority = updateAuthority;
-            // const metadataAccountStr = "";
 
             const creators = data.creators.map(
                 (el) =>
@@ -201,27 +200,11 @@ program
                     }),
             );
 
-            // ⚠️ ATM metaplex requires include Update Authority to the list of creators
-            // on NFT update
-            // https://github.com/metaplex-foundation/metaplex/issues/734
-            const ifCreatorsIncludesAuthority = creators.some((el) => el.address === updateAuthority);
-            // console.log('ifCreatorsIncludesAuthority,', ifCreatorsIncludesAuthority);
-
-            const updateAuthorityCreator = ifCreatorsIncludesAuthority
-                ? []
-                : [
-                      new Creator({
-                          address: updateAuthority,
-                          verified: 0 as any,
-                          share: 0,
-                      }),
-                  ];
-
             const updatedData = new Data({
                 name: data.name,
                 symbol: data?.symbol,
                 uri: updatedUri,
-                creators: [...creators, ...updateAuthorityCreator],
+                creators: [...creators],
                 sellerFeeBasisPoints: data.sellerFeeBasisPoints,
             });
 
